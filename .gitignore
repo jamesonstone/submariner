@@ -13,3 +13,11 @@
 
 # Dependency directories (remove the comment below to include it)
 # vendor/
+keys/ca.crt
+keys/ca.key
+keys/ca.srl
+keys/server.conf
+keys/webhook-server-tls.key
+keys/webhook-server-tls.crt
+
+manifests/01-secret.yaml
