@@ -28,4 +28,26 @@ The documentation cites advanced features of Kubernetes requiring the use of Adm
 
 ## Developing an Admission Controller
 
-Here we pick up with a new set of documentation: [A Guide to Kubernetes Admission Controllers](https://kubernetes.io/blog/2019/03/21/a-guide-to-kubernetes-admission-controllers/) and the awesome companion demo [here](https://github.com/stackrox/admission-controller-webhook-demo)
+Here we pick up with a new set of documentation: [A Guide to Kubernetes Admission Controllers](https://kubernetes.io/blog/2019/03/21/a-guide-to-kubernetes-admission-controllers/) and the awesome companion demo from stackrox [here](https://github.com/stackrox/admission-controller-webhook-demo)
+
+The Admission Controller Webhook Architecture is composed of two components:
+
+The properly authenticated [`MutatingWebhookConfiguration`](../manifests/03-mutatingwebhookconfig.yaml) and the [Webhook Server](../cmd/webhook-server/main.go).
+
+In the `MutatingWebhookConfiguration` we tell Kubernetes which request objects to intercept and where to send the necessary hook. In our case, we're intercepting `CREATE` operations of the `V1 Pod` type. When the API server receives this request, it fires-off a request (with the `AdmissionReview` object as the body) to the webhook server at the specified endpoint running in the cluster.
+
+## Side Effects
+
+It is best practice to have the webhook only operate on the `AdmissionReview` object sent to it. This is to prevent side-effects. There are, however, cases in which out-of-band changes are required or desired. In this case, the `sideEffects` field of the `MutatingWebhookConfiguration` can be set to different states depending on the operation:
+
+In the `admissionregistration.k8s.io/v1beta1` API group, the `sideEffects` field is a string that can be one of the following values:
+
+- `Unknown`, `None`, `Some`, or `NoneOnDryRun`. *The default if unset is `Unknown`.*
+
+In the `admissionregistration.k8s.io/v1` API group, the `sideEffects` field is a string that can be one of the following values:
+
+- `None` or `NoneOnDryRun`.
+
+*note: There is no default for the `sideEffects` field in the `admissionregistration.k8s.io/v1` API group. It is a required field. The transition for this can be seen in [the code](https://github.com/kubernetes/kubernetes/blob/48da959dbff18bfef6e801bd8c8ab3c88b7a7650/pkg/apis/admissionregistration/v1beta1/defaults.go#L81).
+
+More information about `sideEffects` states can be found in the [official docs](https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#side-effects)

@@ -5,8 +5,10 @@ metadata:
   name: submariner-demo
 webhooks:
   - name: webhook-server.submariner.svc
-    sideEffects: None
-    admissionReviewVersions: ["v1", "v1beta1"]
+    timeoutSeconds: 2 # latency added by this operation should be contained especially if out-of-band changes are being made (asynchronous operations are best prescribed when dealing with out of bound changes
+    sideEffects: None # in the v1 API, there is no default value so this must be set
+    failurePolicy: Ignore # Ignore or Fail -- fail can cause lots of issue for the cluster in the case of an improperly configured webhook
+    admissionReviewVersions: ["v1", "v1beta1"] # specify the versions of the admission review accepted by this webhook
     clientConfig:
       service:
         name: webhook-server
